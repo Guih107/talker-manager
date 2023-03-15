@@ -1,5 +1,7 @@
 const express = require('express');
+const crypto = require('crypto');
 const fileReading = require('./utils/reading');
+const validateLogin = require('./utils/validationLogin');
 
 const app = express();
 app.use(express.json());
@@ -33,6 +35,17 @@ app.get('/talker/:id', async (req, res) => {
     return res.status(404).json({ message: err.message });
   }
 });
+
+app.post('/login', validateLogin, (req, res) => {
+  try {
+    const tokenRandom = crypto.randomBytes(8).toString('hex');
+    return res.status(HTTP_OK_STATUS).json({ token: tokenRandom });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+  // return res.status(HTTP_OK_STATUS).json({ token: tokenRandom });
+});
+
 // não remova esse endpoint, e para o avaliador funcionar
 app.get('/', (_request, response) => {
   response.status(HTTP_OK_STATUS).send();
