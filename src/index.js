@@ -6,6 +6,7 @@ const validateLogin = require('./utils/validationLogin');
 const authValidation = require('./utils/validateAutorization');
 const { valadateName, validateAge, validateTalk,
 validateTalkRate, validateWatchedAt } = require('./utils/validateCad');
+const { deleteTalker } = require('./utils/delet');
 
 const app = express();
 app.use(express.json());
@@ -73,6 +74,40 @@ app.post('/talker',
     return res.status(500).json({ message: err.message });
   }
 });
+
+app.put('/talker/:id', authValidation, valadateName, validateAge, validateTalk,
+  validateWatchedAt,
+  validateTalkRate,
+async (req, res) => {
+  const { id } = req.params;
+  const { name, age, talk } = req.body;
+  const talkers = await fileReading();
+  const talkerById = talkers.find((talker) => talker.id === parseInt(id, 10));
+  if (!talkerById) {
+    return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
+  }
+  const newTalker = {
+    id: parseInt(id, 10), name, age, talk };
+  const newTalkers = talkers.map((talker) => {
+    if (talker.id === parseInt(id, 10)) {
+      return newTalker;
+    }
+    return talker;
+  });
+  await fileWriting(newTalkers);
+  return res.status(HTTP_OK_STATUS).json(newTalker);
+});
+
+app.delete('/talker/:id', authValidation, async (req, res) => {
+ const { id } = req.params;
+ try {
+  await deleteTalker(id);
+  return res.status(204).json({ message: 'Talker deletado com sucesso' });
+ } catch (err) {
+  return res.status(500).json({ message: err.message });
+ }
+});
+
 // não remova esse endpoint, e para o avaliador funcionar
 app.get('/', (_request, response) => {
   response.status(HTTP_OK_STATUS).send();
